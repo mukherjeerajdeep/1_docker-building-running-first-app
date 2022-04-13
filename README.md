@@ -55,5 +55,71 @@ Interested in learning more about Docker? Visit https://www.pluralsight.com/cour
 7. Navigate to http://localhost:3000 in your browser.
 
 
+### My Notes and commands for Docker Learning 
+
+1. Check the images you have downloaded or created by `docker images`
+2. The images can be deleted by `docker rmi <image-id>` command. 
+3. Someone can create a image and then can push to upstream repository which is called as registry, here we used the docker.hub.
+4. The dockerfile is a important piece of information and it contains a lot of data layers to build the image layer by layer. 
+
+```Dockerfile
+# So it could be a specific alpine package
+FROM        node:alpine
+
+LABEL       author="Dan Wahlin"
+
+# ARG         PACKAGES=nano
+
+ENV         NODE_ENV=production
+ENV         PORT=3000
+
+# ENV         TERM xterm
+# RUN         apk update && apk add $PACKAGES
+
+WORKDIR     /var/www
+
+# Before npm install we can be very sure that the dependancies are installed 
+# first then the other copying action to perform. This will be first layer of the
+# docker file and then the upcoming layers will follow.
+COPY        package.json package-lock.json ./
+RUN         npm install
+
+# Could also be . /var/www but this is redundant
+# The first . is the local source directory where the dockerfile is living
+# The second . says the /var/www the WORKDIR, so copy everything frm current directory 
+# to the WORKDIR
+COPY        . ./
+
+# Expose the port thorugh the environment variable
+EXPOSE      $PORT
+
+# What to run during that run
+ENTRYPOINT  ["npm", "start"]
+```
+5. So during the image build from the dockerfile we need to specify the file by either putting a `.` or the name od the file by `-f <file-name>` in this case it is `node.dockerfile` so then during the build docker can understand it. 
+6. Once the image is built it can be executed locally or can be pushed. 
+7. Running the container locally is done by `docker run -p 3000:3000 -d mukherjeerajdeep/nodeapp:3.0` here the 
+   1. `-p` is denoting the port mapping.
+   2. `-d` means it will be executed in detached mode so no log will be shown.
+   3. If the docker run is executed on the image which is present locally then the container will be created from there otherwise it will be pulled from the `hub.docker.com` of users account.  
+8. Check the running containers by `docker ps -a`
+
+CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS                      PORTS                    NAMES
+eb93ffbf1043   mukherjeerajdeep/nodeapp:3.0   "npm start"              7 seconds ago    Up 5 seconds                0.0.0.0:3000->3000/tcp   
+
+9. If it is exited means something wrong happened 
+
+CONTAINER ID   IMAGE                          COMMAND                  CREATED              STATUS                      PORTS     NAMES
+eb93ffbf1043   mukherjeerajdeep/nodeapp:3.0   "npm start"              About a minute ago  `Exited (1) 42 seconds ago`             nice_gagarin
+
+10. Check the logs with `docker logs <container-id>` something bad happened with the mongo connection
+
+Trying to connect to mongodb/funWithDocker MongoDB database
+(node:18) [MONGODB DRIVER] Warning: promiseLibrary is a deprecated option
+(Use `node --trace-warnings ...` to show where the warning was created)
+[production] Listening on http://localhost:3000
+
+11. 
+
 
 
