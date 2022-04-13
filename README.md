@@ -55,7 +55,7 @@ Interested in learning more about Docker? Visit https://www.pluralsight.com/cour
 7. Navigate to http://localhost:3000 in your browser.
 
 
-### My Notes and commands for Docker Learning 
+## My Notes and commands for Docker Learning 
 
 1. Check the images you have downloaded or created by `docker images`
 2. The images can be deleted by `docker rmi <image-id>` command. 
@@ -119,7 +119,21 @@ Trying to connect to mongodb/funWithDocker MongoDB database
 (Use `node --trace-warnings ...` to show where the warning was created)
 [production] Listening on http://localhost:3000
 
-11. 
+11. Removing container can be done by `docker rm <container-id>` and that will remove it from the service as well.
+    
+12. The volume mount can be used in two ways :
+    1.  It seems as the `production` use where the logs from the container are redirected to an external media like some database or in local machine. The command to be used is `docker run -p 3000:3000 -v ${PWD}/logs:/var/www/logs mukherjeerajdeep/nodeapp:3.0` Here the container app usually writes data at `var/www/logs` however we redirected it by saying 
+        1.  `{PWD}` - local directory where we are currently in and running the docker command. 
+        2.  Then traversing to /logs folder as similar like container. Hence `{PWD}/logs`
+
+    **Note** : The parameter in the left of `:` refers the local machine whereas the right shows the folders/path inside the container.
+
+    1. The other way is the kind of `developement` environement type where the container fetches data runtime to show towards the user. The command executed as `docker run -p 8080:80 -v ${PWD}/nginx:/usr/share/nginx/html nginx:alpine` exactly similar like above but here is two difference. 
+       1. The flow is opposite than before it means what we write in the index.html inside the nginx folder will be thrown by the container. 
+       2. It's dynamic and can be changed everytime. We exploited that path `/usr/share/nginx/html` nginx usually fetches the html and shows up in browser.
+
+     **Note** : In this case we are in the same NodeAPP folder and in the left of `:` we have the source that is local machine and destination is remote machine i.e. container. 
+
 
 
 
