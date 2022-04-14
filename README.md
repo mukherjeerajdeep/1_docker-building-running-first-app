@@ -62,12 +62,13 @@ eb93ffbf1043   mukherjeerajdeep/nodeapp:3.0   "npm start"              About a m
 ```
 
 10. Check the logs with `docker logs <container-id>` something bad happened with the mongo connection
-
+    
+```text
 Trying to connect to mongodb/funWithDocker MongoDB database
 (node:18) [MONGODB DRIVER] Warning: promiseLibrary is a deprecated option
 (Use `node --trace-warnings ...` to show where the warning was created)
 [production] Listening on http://localhost:3000
-
+```
 11. Removing container can be done by `docker rm <container-id>` and that will remove it from the service as well.
     
 12. The volume mount can be used in two ways :
