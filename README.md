@@ -39,21 +39,27 @@ EXPOSE      $PORT
 # What to run during that run
 ENTRYPOINT  ["npm", "start"]
 ```
+
 5. So during the image build from the dockerfile we need to specify the file by either putting a `.` or the name od the file by `-f <file-name>` in this case it is `node.dockerfile` so then during the build docker can understand it. 
+
 6. Once the image is built it can be executed locally or can be pushed. 
+
 7. Running the container locally is done by `docker run -p 3000:3000 -d mukherjeerajdeep/nodeapp:3.0` here the 
    1. `-p` is denoting the port mapping.
    2. `-d` means it will be executed in detached mode so no log will be shown.
    3. If the docker run is executed on the image which is present locally then the container will be created from there otherwise it will be pulled from the `hub.docker.com` of users account.  
-8. Check the running containers by `docker ps -a`
 
+8. Check the running containers by `docker ps -a`
+```text
 CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS                      PORTS                    NAMES
 eb93ffbf1043   mukherjeerajdeep/nodeapp:3.0   "npm start"              7 seconds ago    Up 5 seconds                0.0.0.0:3000->3000/tcp   
+```
 
 9. If it is exited means something wrong happened 
-
+```text
 CONTAINER ID   IMAGE                          COMMAND                  CREATED              STATUS                      PORTS     NAMES
 eb93ffbf1043   mukherjeerajdeep/nodeapp:3.0   "npm start"              About a minute ago  `Exited (1) 42 seconds ago`             nice_gagarin
+```
 
 10. Check the logs with `docker logs <container-id>` something bad happened with the mongo connection
 
@@ -77,7 +83,60 @@ Trying to connect to mongodb/funWithDocker MongoDB database
 
      **Note** : In this case we are in the same NodeAPP folder and in the left of `:` we have the source that is local machine and destination is remote machine i.e. container. 
 
-13. 
+13. Creating the network is a bridge between the containers and this is how the containers talk to each other. The command used to see current networks is `docker network ls` and the creation of the network can be done as `docker network create --driver bridge isolated_network` where tje `--driver` is denoted the type of the network and then the network name which is here `isolated_network`. Once the network is created we can connect our containers by them.
+    1.  Here is the print :
+```text
+PS C:\Rajdeep_Mukherjee\Dan_W_Dcoker\NodeExpressMongoDBDockerApp> docker network ls
+NETWORK ID     NAME               DRIVER    SCOPE
+eb766a091add   bridge             bridge    local
+0b3ba88f12e5   host               host      local
+d0f06edc4fc9   isolated_network   bridge    local <-- This is our network>
+1179eaf8430c   none               null      local
+```
+14. Now the connections are done as follows.
+    1. The mongo is connected as `docker run -d --net=isolated_network --name mongodb mongo`
+    2. The app is connected as `docker run -d --net=isolated_network --name nodeapp -p 3000:3000 -v $(pwd)/logs:/var/www/logs danwahlin/nodeapp` remember for windows it will be `{PWD}`. Check out the the `--net=isolated_network` which says the network name and also the `--name <container-name>` is important because the /config file mentioned the name and we need to use the same name otherwise the app will never able to connect the database.
+
+15.  To connect the container shell we can use `docker exec --it <container-name> sh` the use of sh/bash/powershell depends on the type of container. Instructor here used the seeder script to populate the db through the app `docker exec nodeapp node dbSeeder.js`. Once this is setup we can see the tables inside the app.
+    
+16.  This is the same way we build the `docker-compose` file which conforms the YAML format and there are certain rules for that. 
+
+```yaml
+version: '3.7'
+
+services:                         # all are services, hence the node and mongodb are both services
+  node:
+    container_name: nodeapp       # name of the container
+    image: nodeapp                # which image to take if mentioened  
+    build:                        # This will tell compose to build the image from the path specified
+      context: .                  # `.` here means the same root folder where the docker-compose.yaml file resides
+      dockerfile: node.dockerfile # This says which dockerfile to look when building the image. 
+      args:
+        PACKAGES: "nano wget curl"
+    ports:
+      - "3000:3000"
+    networks:                      # network names specifier
+      - nodeapp-network
+    volumes:                       # volume specifier for app logs. Here the container logs will be written
+      - ./logs:/var/www/logs
+    environment:
+      - NODE_ENV=production
+      - APP_VERSION=1.0
+    depends_on:                    # this says the mongo-db should come up earlier than this app, otherwise fail
+      - mongodb
+      
+  mongodb:                         # bring up mongodb as a service
+    container_name: mongodb
+    image: mongo
+    networks:                      # connected to same network as the app
+      - nodeapp-network
+
+networks:
+  nodeapp-network:                 # which network is used.
+    driver: bridge
+```
+
+Now different command like docker-compose build/up/down will wok to build the container, make them up and working as taking them down when user want to do that. 
 
 
 # Node.js with MongoDB and Docker Demo
