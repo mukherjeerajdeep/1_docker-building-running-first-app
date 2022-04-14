@@ -1,7 +1,6 @@
 version: '3.7'
 
 services:
-
   node:
     container_name: nodeapp
     image: nodeapp

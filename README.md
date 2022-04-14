@@ -1,5 +1,3 @@
-# Node.js with MongoDB and Docker Demo
-
 ## My Notes and commands for Docker Learning 
 
 1. Check the images you have downloaded or created by `docker images`
@@ -75,12 +73,14 @@ Trying to connect to mongodb/funWithDocker MongoDB database
 
     1. The other way is the kind of `developement` environement type where the container fetches data runtime to show towards the user. The command executed as `docker run -p 8080:80 -v ${PWD}/nginx:/usr/share/nginx/html nginx:alpine` exactly similar like above but here is two difference. 
        1. The flow is opposite than before it means what we write in the index.html inside the nginx folder will be thrown by the container. 
-       2. It's dynamic and can be changed everytime. We exploited that path `/usr/share/nginx/html` nginx usually fetches the html and shows up in browser.
+       2. It's dynamic and can be changed everytime. We exploited that path `/usr/share/nginx/html` nginx usually fetches the html files from this place and shows up in browser.
 
      **Note** : In this case we are in the same NodeAPP folder and in the left of `:` we have the source that is local machine and destination is remote machine i.e. container. 
 
+13. 
 
 
+# Node.js with MongoDB and Docker Demo
 
 Application demo designed to show how Node.js and MongoDB can be run in Docker containers. 
 The app uses Mongoose to create a simple database that stores Docker commands and examples. 
