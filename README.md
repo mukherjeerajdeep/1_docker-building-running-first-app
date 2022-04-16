@@ -11,10 +11,15 @@ FROM        node:alpine
 
 LABEL       author="Dan Wahlin"
 
-# ARG         PACKAGES=nano
+# This can be passed from the docker-compose during the build
+ARG         buildversion 
 
 ENV         NODE_ENV=production
 ENV         PORT=3000
+
+# Based on the ARG "buildversion" this environment can be set
+# This is passed from the compose
+ENV         build=$buildversion
 
 # ENV         TERM xterm
 # RUN         apk update && apk add $PACKAGES
@@ -35,6 +40,9 @@ COPY        . ./
 
 # Expose the port thorugh the environment variable
 EXPOSE      $PORT
+
+# RUN a specifc command if we want
+RUN         echo "Build version: ${build}"
 
 # What to run during that run
 ENTRYPOINT  ["npm", "start"]
@@ -105,31 +113,40 @@ d0f06edc4fc9   isolated_network   bridge    local <-- This is our network>
 ```yaml
 version: '3.7'
 
-services:                         # all are services, hence the node and mongodb are both services
+# Many services can be build together, hence the compose is powerful. In this example only node is built, but there 
+services:                         #  can be many like java, python services can be build together. ** Mongo is not built
   node:
-    container_name: nodeapp       # name of the container
+    container_name: nodeapp       # name of the container after docker compose creates it.
+   
     image: nodeapp                # which image to take if mentioened  
-    build:                        # This will tell compose to build the image from the path specified
+    build:                        # determine how the images will be build instructed by docker-compose
       context: .                  # `.` here means the same root folder where the docker-compose.yaml file resides
-      dockerfile: node.dockerfile # This says which dockerfile to look when building the image. 
+      dockerfile: node.dockerfile # dockerfile to use when building the image. user can specify it here.
       args:
         PACKAGES: "nano wget curl"
+        buildversion: 1           # Argument can be passed in `docker-compose`. Will be used during buildifn of image.
+    environment:                  # other `ENV` variables can also be passed as `ARG's`
+      - NODE_ENV=production
+      - PORT=3000
+      - build=1
+    env_file: <file-path>         # supply a environment file during the build, http://bityl.pl/pCBuM
     ports:
       - "3000:3000"
-    networks:                      # network names specifier
+    networks:                     # network names specifier
       - nodeapp-network
-    volumes:                       # volume specifier for app logs. Here the container logs will be written
+    volumes:                      # volume specifier for app logs. Here the container logs will be written
       - ./logs:/var/www/logs
     environment:
       - NODE_ENV=production
       - APP_VERSION=1.0
-    depends_on:                    # this says the mongo-db should come up earlier than this app, otherwise fail
+    depends_on:                   # this says the mongo-db should come up earlier than this app, otherwise fail
       - mongodb
-      
-  mongodb:                         # bring up mongodb as a service
+
+ # Mongo doesn't have the key with build, it taken straight from the docker hub. 
+  mongodb:                        # bring up mongodb as a service
     container_name: mongodb
     image: mongo
-    networks:                      # connected to same network as the app
+    networks:                     # connected to same network as the app
       - nodeapp-network
 
 networks:
@@ -139,6 +156,7 @@ networks:
 
 Now different command like docker-compose build/up/down will wok to build the container, make them up and working as taking them down when user want to do that. 
 
+17. Similar like `docker ps` to check the status of the published docker containers as a service same thing can be done with the `docker compose` as well. The command is `docker compose ps` after the `docker compose up` is fired.
 
 # Node.js with MongoDB and Docker Demo
 

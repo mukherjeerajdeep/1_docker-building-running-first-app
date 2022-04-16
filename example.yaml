@@ -1,0 +1,18 @@
+# We can have properties like 
+# build/environment/image/networks/ports/volume 
+
+key: value
+complexmap:
+  key1: value
+  key2:
+    subkey: value
+  items:
+    - item1
+    - item2
+  itemmap:
+    - map1: value
+      map1prop: value
+    - map2: value
+      map2prop: value
+
+

@@ -22,10 +22,16 @@ FROM        node:alpine
 
 LABEL       author="Dan Wahlin"
 
+# This can be passed from the docker-compose during the build
+ARG         buildversion 
+
 # ARG         PACKAGES=nano
 
 ENV         NODE_ENV=production
 ENV         PORT=3000
+
+# This is passed from the compose
+ENV         build=$buildversion
 
 # ENV         TERM xterm
 # RUN         apk update && apk add $PACKAGES
@@ -46,6 +52,9 @@ COPY        . ./
 
 # Expose the port thorugh the environment variable
 EXPOSE      $PORT
+
+# RUN a specifc command if we want
+RUN         echo "Build version: ${build}"
 
 # What to run during that run
 ENTRYPOINT  ["npm", "start"]

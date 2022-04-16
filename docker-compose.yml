@@ -3,12 +3,17 @@ version: '3.7'
 services:
   node:
     container_name: nodeapp
-    image: nodeapp
+    image: nodeapp_dan
     build:
       context: .
       dockerfile: node.dockerfile
       args:
         PACKAGES: "nano wget curl"
+        buildversion: 1
+    environment: 
+      - NODE_ENV=production
+      - PORT=3000
+      - build=1
     ports:
       - "3000:3000"
     networks:
