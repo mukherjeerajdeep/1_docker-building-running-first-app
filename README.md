@@ -6,6 +6,8 @@
 4. The dockerfile is a important piece of information and it contains a lot of data layers to build the image layer by layer. 
 
 ```Dockerfile
+# DOCKER EXAMPLE FILE
+
 # So it could be a specific alpine package
 FROM        node:alpine
 
@@ -18,7 +20,7 @@ ENV         NODE_ENV=production
 ENV         PORT=3000
 
 # Based on the ARG "buildversion" this environment can be set
-# This is passed from the compose
+# This can be passed from the compose, this is similar to the command `docker run -p <ports> --env    NODE_ENV=production <imageToRun>`
 ENV         build=$buildversion
 
 # ENV         TERM xterm
@@ -111,6 +113,8 @@ d0f06edc4fc9   isolated_network   bridge    local <-- This is our network>
 16.  This is the same way we build the `docker-compose` file which conforms the YAML format and there are certain rules for that. 
 
 ```yaml
+# DOCKER-COMPOSE EXAMPLE FILE
+
 version: '3.7'
 
 # Many services can be build together, hence the compose is powerful. In this example only node is built, but there 
@@ -118,18 +122,20 @@ services:                         #  can be many like java, python services can 
   node:
     container_name: nodeapp       # name of the container after docker compose creates it.
    
-    image: nodeapp                # which image to take if mentioened  
+    image: nodeapp                # image to use for building containers, it can be a already exisiting image from some registry or build that image before building containers looking at the build properties below. 
     build:                        # determine how the images will be build instructed by docker-compose
       context: .                  # `.` here means the same root folder where the docker-compose.yaml file resides
       dockerfile: node.dockerfile # dockerfile to use when building the image. user can specify it here.
       args:
         PACKAGES: "nano wget curl"
         buildversion: 1           # Argument can be passed in `docker-compose`. Will be used during buildifn of image.
-    environment:                  # other `ENV` variables can also be passed as `ARG's`
+    environment:                  # `ENV` variables can also be passed as `ARG's`, These enviroments will be set when container will be executed from the image. So inside the running container. 
       - NODE_ENV=production
       - PORT=3000
       - build=1
-    env_file: <file-path>         # supply a environment file during the build, http://bityl.pl/pCBuM
+    env_file: 
+      - <file-path>               # supply a environment file during the build, http://bityl.pl/pCBuM
+      - ./common.env              # Example of the file
     ports:
       - "3000:3000"
     networks:                     # network names specifier
@@ -150,13 +156,30 @@ services:                         #  can be many like java, python services can 
       - nodeapp-network
 
 networks:
-  nodeapp-network:                 # which network is used.
-    driver: bridge
+  nodeapp-network:                # name of the network which will connect the containers 
+    driver: bridge                # which type of network is used.
 ```
 
 Now different command like docker-compose build/up/down will wok to build the container, make them up and working as taking them down when user want to do that. 
 
 17. Similar like `docker ps` to check the status of the published docker containers as a service same thing can be done with the `docker compose` as well. The command is `docker compose ps` after the `docker compose up` is fired.
+
+18. If someone don't want to see the logs then they can use `docker compose up -d` command, here the `-d` means detached mode.
+
+19. Ther are few commands that may be useful in case one of the service out of two services are brought dowan dto correct something and them bring them back with the existing service i.e. the database service, for example we don't want to initiate or let our app to hang due to a dependancy towards the container database. In that case we would use a different compose `docker compose up -d --no-deps [service-name]` remember that here the `docker compose start [service]` will not work once the `service` i.e. here the `node` is removed from the bundle.
+
+```yaml
+version: '3.7'
+
+services:   
+  node:                         # First service, service name is node 
+    .....
+  mongodb:                      # Second service, service name is mongodb
+    .....
+
+```
+
+
 
 # Node.js with MongoDB and Docker Demo
 
@@ -197,6 +220,7 @@ Interested in learning more about Docker? Visit https://www.pluralsight.com/cour
 9. Navigate to http://localhost:3000 (http://192.168.99.100:3000 if using Docker Toolbox) in your browser to view the site. This assumes that's the IP assigned to VirtualBox - change if needed.
 
 10. Run `docker-compose down` to stop the containers and remove them.
+    
 
 ## To run the app with Node.js and MongoDB (without Docker):
 
