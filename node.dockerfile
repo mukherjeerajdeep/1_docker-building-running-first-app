@@ -22,19 +22,22 @@ FROM        node:alpine
 
 LABEL       author="Dan Wahlin"
 
-# This can be passed from the docker-compose during the build
+# buildversion can be passed from the docker-compose.yaml during the build
 ARG         buildversion 
 
-# ARG         PACKAGES=nano
+# Set packages with nano
+ARG         PACKAGES=nano
 
+# This can be passed from the docker-compose.yaml
 ENV         NODE_ENV=production
 ENV         PORT=3000
 
-# This is passed from the compose
+# This can be passed from the docker-compose.yaml
 ENV         build=$buildversion
 
-# ENV         TERM xterm
-# RUN         apk update && apk add $PACKAGES
+ENV         TERM=xterm
+
+RUN         apk update && apk add $PACKAGES
 
 WORKDIR     /var/www
 
@@ -46,7 +49,7 @@ RUN         npm install
 
 # Could also be . /var/www but this is redundant
 # The first . is the local source directory where the dockerfile is living
-# The second . says the /var/www the WORKDIR, so copy everything frm current directory 
+# The second . says the /var/www which is the WORKDIR, so copy everything frm current directory 
 # to the WORKDIR
 COPY        . ./
 

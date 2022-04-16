@@ -178,8 +178,56 @@ services:
     .....
 
 ```
+20. Looking into the docker compose executed container logs is same as looking into the individual container logs however that can be used as `docker compose logs [servicename] --tail=<number of lines to check>`. The service name can be `node` or `mongodb` as we have seen above.
 
+21. Same as the use for the shelling into a container but with service name as the docker compose used container. The same will work as `docker compose exec --it [servicename] sh` as before. It is a little different than `docker exec -it` we used earlier.
 
+22. The `exec` command will shell into the container and here we can see that the environment set inside the docker container which came from the dockerfile `ENV` and also from the passed argument `ARG` from the docker compose.
+    
+```text
+PS C:\Rajdeep_Mukherjee\Dan_W_Dcoker\NodeExpressMongoDBDockerApp> docker compose exec node sh
+/var/www #
+/var/www # env
+NODE_VERSION=17.9.0
+HOSTNAME=80d12467e8f6
+YARN_VERSION=1.22.18
+SHLVL=1
+PORT=3000                                                              # We set this in dockerfile
+HOME=/root
+TERM=xterm                                                             # We set this in dockerfile
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+build=1                                                                # We set this in compose.yaml
+PWD=/var/www                                                           # We set this in dockerfile, by WORKDIR 
+NODE_ENV=production                                                    # We set this in compose.yaml
+APP_VERSION=1.0                                                        # We set this in compose.yaml 
+/var/www #
+```
+**note**: We can even supply the `environmental` variable during the `exec` command. Check the help below with `-e` options.
+
+```text
+PS C:\Rajdeep_Mukherjee\Dan_W_Dcoker\NodeExpressMongoDBDockerApp> docker compose exec --help
+
+Usage:  docker compose exec [options] [-e KEY=VAL...] [--] SERVICE COMMAND [ARGS...]
+
+Execute a command in a running container.
+
+Options:
+  -d, --detach                       Detached mode: Run command in the
+                                     background.
+ ` -e, --env stringArray              Set environment variables`
+      --index int                    index of the container if there are
+                                     multiple instances of a service
+                                     [default: 1]. (default 1)
+  -T, --no-TTY docker compose exec   Disable pseudo-TTY allocation. By
+                                     default docker compose exec
+                                     allocates a TTY.
+      --privileged                   Give extended privileges to the process.
+  -u, --user string                  Run the command as this user.
+  -w, --workdir string               Path to workdir directory for this
+                                     command.
+```
+
+23. We can scale up the containers by `docker compose` with `--scale` command. So the full command is 
 
 # Node.js with MongoDB and Docker Demo
 
