@@ -13,7 +13,8 @@ FROM        node:alpine
 
 LABEL       author="Dan Wahlin"
 
-# This can be passed from the docker-compose during the build
+# This can be passed from the docker-compose during the build.
+# These are build-time constructs
 ARG         buildversion 
 
 ENV         NODE_ENV=production
@@ -47,19 +48,25 @@ EXPOSE      $PORT
 RUN         echo "Build version: ${build}"
 
 # What to run during that run
-ENTRYPOINT  ["npm", "start"]
+# Sometimes this one is used with CMD as well so to give a choice 
+# to user to override the passed parameter during running of container.
+ENTRYPOINT  ["npm", "start"] 
+
+# The CMD and ENTRYPOINT are run-time constructs/variables.
 ```
 
-5. So during the image build from the dockerfile we need to specify the file by either putting a `.` or the name od the file by `-f <file-name>` in this case it is `node.dockerfile` so then during the build docker can understand it. 
+5. So during the image build from the dockerfile we need to specify the file by either putting a `.` or the name od the file by `-f <file-name>` in this case it is `node.dockerfile` so then during the build docker can understand it.
+   
+6. Docker container can also be executed and deleted once the work is done by `docker container run --rm nginx` the --rm flag which means remove.  
 
-6. Once the image is built it can be executed locally or can be pushed. 
+7. Once the image is built it can be executed locally or can be pushed. 
 
-7. Running the container locally is done by `docker run -p 3000:3000 -d mukherjeerajdeep/nodeapp:3.0` here the 
+8. Running the container locally is done by `docker run -p 3000:3000 -d mukherjeerajdeep/nodeapp:3.0` here the 
    1. `-p` is denoting the port mapping.
    2. `-d` means it will be executed in detached mode so no log will be shown.
    3. If the docker run is executed on the image which is present locally then the container will be created from there otherwise it will be pulled from the `hub.docker.com` of users account.  
 
-8. Check the running containers by `docker ps -a`
+9.  Check the running containers by `docker ps -a`
 ```text
 CONTAINER ID   IMAGE                          COMMAND                  CREATED          STATUS                      PORTS                    NAMES
 eb93ffbf1043   mukherjeerajdeep/nodeapp:3.0   "npm start"              7 seconds ago    Up 5 seconds                0.0.0.0:3000->3000/tcp   
@@ -82,11 +89,13 @@ Trying to connect to mongodb/funWithDocker MongoDB database
 11. Removing container can be done by `docker rm <container-id>` and that will remove it from the service as well.
     
 12. The volume mount can be used in two ways :
-    1.  It seems as the `production` use where the logs from the container are redirected to an external media like some database or in local machine. The command to be used is `docker run -p 3000:3000 -v ${PWD}/logs:/var/www/logs mukherjeerajdeep/nodeapp:3.0` Here the container app usually writes data at `var/www/logs` however we redirected it by saying 
+    1.  It seems as the `production` use where the logs from the container are redirected to an external media like some database or in local machine. The command to be used is `docker run -p 3000:3000 -v ${PWD}/logs:/var/www/logs mukherjeerajdeep/nodeapp:3.0` Here the container app usually writes data at `var/www/logs` however we redirected it by saying.
         1.  `{PWD}` - local directory where we are currently in and running the docker command. 
         2.  Then traversing to /logs folder as similar like container. Hence `{PWD}/logs`
 
     **Note** : The parameter in the left of `:` refers the local machine whereas the right shows the folders/path inside the container.
+
+    **Note** : It can alos be done with bind mount system which is newer than the volume mount. `docker run -p 3000:3000 --mount type=bind,source=${PWD}/logs,target=/var/www/logs mukherjeerajdeep/nodeapp:3.0`
 
     1. The other way is the kind of `developement` environement type where the container fetches data runtime to show towards the user. The command executed as `docker run -p 8080:80 -v ${PWD}/nginx:/usr/share/nginx/html nginx:alpine` exactly similar like above but here is two difference. 
        1. The flow is opposite than before it means what we write in the index.html inside the nginx folder will be thrown by the container. 
@@ -95,6 +104,7 @@ Trying to connect to mongodb/funWithDocker MongoDB database
      **Note** : In this case we are in the same NodeAPP folder and in the left of `:` we have the source that is local machine and destination is remote machine i.e. container. 
 
 13. Creating the network is a bridge between the containers and this is how the containers talk to each other. The command used to see current networks is `docker network ls` and the creation of the network can be done as `docker network create --driver bridge isolated_network` where tje `--driver` is denoted the type of the network and then the network name which is here `isolated_network`. Once the network is created we can connect our containers by them.
+  
     1.  Here is the print :
 ```text
 PS C:\Rajdeep_Mukherjee\Dan_W_Dcoker\NodeExpressMongoDBDockerApp> docker network ls
@@ -108,7 +118,7 @@ d0f06edc4fc9   isolated_network   bridge    local <-- This is our network>
     1. The mongo is connected as `docker run -d --net=isolated_network --name mongodb mongo`
     2. The app is connected as `docker run -d --net=isolated_network --name nodeapp -p 3000:3000 -v $(pwd)/logs:/var/www/logs danwahlin/nodeapp` remember for windows it will be `{PWD}`. Check out the the `--net=isolated_network` which says the network name and also the `--name <container-name>` is important because the /config file mentioned the name and we need to use the same name otherwise the app will never able to connect the database.
 
-15.  To connect the container shell we can use `docker exec --it <container-name> sh` the use of sh/bash/powershell depends on the type of container. Instructor here used the seeder script to populate the db through the app `docker exec nodeapp node dbSeeder.js`. Once this is setup we can see the tables inside the app.
+15.  To connect the container shell we can use `docker exec -it <container-name> sh` the use of sh/bash/powershell depends on the type of container. Instructor here used the seeder script to populate the db through the app `docker exec nodeapp node dbSeeder.js`. Once this is setup we can see the tables inside the app.
     
 16.  This is the same way we build the `docker-compose` file which conforms the YAML format and there are certain rules for that. 
 
@@ -180,7 +190,7 @@ services:
 ```
 20. Looking into the docker compose executed container logs is same as looking into the individual container logs however that can be used as `docker compose logs [servicename] --tail=<number of lines to check>`. The service name can be `node` or `mongodb` as we have seen above.
 
-21. Same as the use for the shelling into a container but with service name as the docker compose used container. The same will work as `docker compose exec --it [servicename] sh` as before. It is a little different than `docker exec -it` we used earlier.
+21. Same as the use for the shelling into a container but with service name as the docker compose used container. The same will work as `docker compose exec -it [servicename] sh` as before. It is a little different than `docker exec -it` we used earlier.
 
 22. The `exec` command will shell into the container and here we can see that the environment set inside the docker container which came from the dockerfile `ENV` and also from the passed argument `ARG` from the docker compose.
     
